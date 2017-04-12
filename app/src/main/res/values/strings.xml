@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">PullToRefresh</string>
+
+    <string name="test_txt">Android powers hundreds of millions of mobile devices in more than 190 countries around the world. It\'s the largest installed base of any mobile platform and growing fast—every day another million users power up their Android devices for the first time and start looking for apps, games, and other digital content.
+
+Android gives you a world-class platform for creating apps and games for Android users everywhere, as well as an open marketplace for distributing to them instantly.\r\nBuilding on the contributions of the open-source Linux community and more than 300 hardware, software, and carrier partners, Android has rapidly become the fastest-growing mobile OS.
+
+\r\n   Android’s openness has made it a favorite for consumers and developers alike, driving strong growth in app consumption. Android users download billions of apps and games from Google Play each month.
+
+With its partners, Android is continuously pushing the boundaries of hardware and software forward to bring new capabilities to users and developers. For developers, Android innovation lets you build powerful, differentiated applications that use the latest mobile technologies.\r\n
+    Android is continuously pushing the boundaries of hardware and software forward, to bring new capabilities to users and developers. For developers, the rapid evolution of Android technology lets you stay in front with powerful, differentiated applications.
+
+Android gives you access to the latest technologies and innovations across a multitude of device form-factors, chipset architectures, and price points. From multicore processing and high-performance graphics to state-of-the-art sensors, vibrant touchscreens, and emerging mobile technologies.
+    \r\n  Android gives you everything you need to build best-in-class app experiences. It gives you a single application model that lets you deploy your apps broadly to hundreds of millions of users across a wide range of devices—from phones to tablets and beyond.
+
+Android also gives you tools for creating apps that look great and take advantage of the hardware capabilities available on each device. It automatically adapts your UI to look its best on each device, while giving you as much control as you want over your UI on different device types.
+
+For example, you can create a single app binary that\'s optimized for both phone and tablet form factors. You declare your UI in lightweight sets of XML resources, one set for parts of the UI that are common to all form factors and other sets for optimzations specific to phones or tablets. At runtime, Android applies the correct resource sets based on its screen size, density, locale, and so on.
+
+To help you develop efficiently, the Android Developer Tools offer a full Java IDE with advanced features for developing, debugging, and packaging Android apps. Using the IDE, you can develop on any available Android device or create virtual devices that emulate any hardware configuration.
+    </string>
+
+</resources>

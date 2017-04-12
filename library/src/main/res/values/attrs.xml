@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="PullToRefreshLayout">
+        <attr name="android:enabled"/>
+        <attr name="refresh_layout" format="reference"/>
+    </declare-styleable>
+</resources>
