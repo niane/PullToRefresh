@@ -186,7 +186,9 @@ public class PullToRefreshLayout extends RefreshLayout implements NestedScrollin
                 if (mIsBeingDragged) {
                     mIsBeingDragged = false;
                     final float y = ev.getY(pointerIndex);
+                    final float rate = y - mLastTouchY > 0 ? DRAG_RATE : 1;
                     final int dy = (int) ((y - mLastTouchY) * DRAG_RATE);
+
                     mLastTouchY = y;
                     ((RefreshTrigger) mRefreshView).onTouchMove(dy);
                     ((RefreshTrigger) mRefreshView).onRelease();

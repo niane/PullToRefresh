@@ -1,2 +1,2 @@
 # PullToRefresh
-PullToRefresh
+下拉刷新PullToRefresh 支持ListView、GridView、ScrollView、RecyclerView及NestedScrollView，并支持嵌套滚动。
