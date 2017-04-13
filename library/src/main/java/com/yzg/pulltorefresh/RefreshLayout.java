@@ -122,7 +122,7 @@ abstract class RefreshLayout extends ViewGroup{
         final int childHeight = height - getPaddingTop() - getPaddingBottom();
 
         mRefreshView.layout(childLeft, -(mHeaderHeight - childTop - offset), childLeft + childWidth, offset + childTop);
-        mTarget.layout(childLeft, offset + childTop, childLeft + childWidth, childHeight);
+        mTarget.layout(childLeft, offset + childTop, childLeft + childWidth, offset + childTop + mTarget.getMeasuredHeight());
 
         if(DEBUG){
             Log.d(TAG, String.format("Refresh view top: %d, offset: %d, height: %d", -(mHeaderHeight - childTop - offset), offset, mHeaderHeight));

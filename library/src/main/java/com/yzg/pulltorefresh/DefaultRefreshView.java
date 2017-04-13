@@ -49,7 +49,7 @@ public class DefaultRefreshView extends RelativeLayout implements RefreshTrigger
     private int mCurrentHeight = 0;
 
     /**刷新头部最大高度*/
-    private final int maxScrollHeight;
+    private int maxScrollHeight;
 
     /**松开手指后动画*/
     private ValueAnimator releaseAnimator;
@@ -69,8 +69,13 @@ public class DefaultRefreshView extends RelativeLayout implements RefreshTrigger
         txt = (TextView) view.findViewById(R.id.refresh_txt);
         progressBarLoading = (ProgressBar) view.findViewById(R.id.progress_loading);
 
-        maxScrollHeight = DisplayUtil.getScreenHeight(context);
         refreshingHeight = DisplayUtil.dip2px(context, 50);
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        maxScrollHeight = getMeasuredHeight();
     }
 
     @Override

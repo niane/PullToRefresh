@@ -78,8 +78,7 @@ public class PullToRefreshLayout extends RefreshLayout implements NestedScrollin
         newHeight = newHeight < 0 ? 0 : newHeight > mHeaderHeight ? mHeaderHeight : newHeight;
 
         mRefreshView.offsetTopAndBottom(newHeight - offset);
-        mTarget.setTop(mTarget.getTop() + newHeight - offset);
-        mTarget.setBottom(getMeasuredHeight());
+        mTarget.offsetTopAndBottom(newHeight - offset);
 
         offset = newHeight;
     }
