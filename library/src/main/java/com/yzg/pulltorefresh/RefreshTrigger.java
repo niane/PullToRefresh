@@ -8,25 +8,20 @@ package com.yzg.pulltorefresh;
 
 public interface RefreshTrigger {
 
-    void init(RefreshLayout refreshLayout);
-
-    /**直接设置刷新状态*/
-    void setRefreshing(boolean refreshing);
+    void setStatus(@RefreshTriggerHelper.State int status);
 
     /**
-     * 触摸滑动
-     * @param dy 滑动距离 dy>0向下滑动， dy<0向上滑动
+     * 滑动回调
+     * @param height 头部当前高度
      */
-    void onTouchMove(int dy);
+    void onMove(int height);
 
-    /**松开手指**/
-    void onRelease();
+    /**正在刷新时头部的高度*/
+    int getRefreshingHeight();
 
-    /**
-     * 完成刷新
-     *
-     * @param success 是否刷新成功
-     * @param info 附带信息
-     */
-    void onFinish(boolean success, String info);
+    /**刷新头部最大高度*/
+    int getMaxScrollHeight();
+
+    /**由下拉刷新触发释放刷新的高度*/
+    int getTriggerReleaseHeight();
 }

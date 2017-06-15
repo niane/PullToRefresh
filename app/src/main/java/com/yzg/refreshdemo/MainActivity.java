@@ -50,9 +50,9 @@ public class MainActivity extends AppCompatActivity {
                 pullRefresh.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        pullRefresh.finish(true);
+                        pullRefresh.finish();
                     }
-                }, 3000);
+                }, 5000);
             }
         });
 

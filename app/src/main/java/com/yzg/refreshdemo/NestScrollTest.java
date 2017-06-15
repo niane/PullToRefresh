@@ -28,7 +28,7 @@ public class NestScrollTest extends AppCompatActivity {
                     public void run() {
                         pullRefresh.finish();
                     }
-                }, 3000);
+                }, 5000);
             }
         });
 

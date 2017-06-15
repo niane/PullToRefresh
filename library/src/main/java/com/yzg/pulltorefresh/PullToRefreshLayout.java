@@ -8,6 +8,7 @@ import android.support.v4.view.NestedScrollingParent;
 import android.support.v4.view.NestedScrollingParentHelper;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -20,7 +21,6 @@ public class PullToRefreshLayout extends RefreshLayout implements NestedScrollin
 
     private float mLastTouchY = 0;
     private boolean mIsBeingDragged;
-    private boolean mIsRefreshing;
     private int mActivePointerId = INVALID_POINTER;
     private int mTouchSlop;
 
@@ -49,47 +49,35 @@ public class PullToRefreshLayout extends RefreshLayout implements NestedScrollin
     /**
      * 完成刷新
      */
-    public void finish(boolean success, String info) {
-        ((RefreshTrigger) mRefreshView).onFinish(success, info);
-        mIsRefreshing = false;
-    }
-
-    public void finish(boolean success) {
-        finish(success, "");
-    }
-
     public void finish() {
-        finish(true, "");
+        triggerHelper.finish();
     }
 
     /**
      * 开始刷新
      */
     public void start() {
-        ((RefreshTrigger) mRefreshView).setRefreshing(true);
+        triggerHelper.startRefresh();
     }
 
     public boolean isRefreshing() {
-        return mIsRefreshing;
+        return triggerHelper.isRefreshing();
     }
 
     @Override
-    public void onTransformHeaderHeight(int newHeight) {
-        newHeight = newHeight < 0 ? 0 : newHeight > mHeaderHeight ? mHeaderHeight : newHeight;
-
-        mRefreshView.offsetTopAndBottom(newHeight - offset);
-        mTarget.offsetTopAndBottom(newHeight - offset);
-
-        offset = newHeight;
+    protected void onTransformHeaderHeight(int newHeight) {
+        mRefreshView.offsetTopAndBottom(newHeight - mCurrentHeight);
+        if(!pin) {
+            mTarget.offsetTopAndBottom(newHeight - mCurrentHeight);
+        }
+        mCurrentHeight = newHeight;
+        Log.d("Test", "New height: " + mCurrentHeight);
     }
 
     @Override
-    public void onRefresh() {
-        if (!mIsRefreshing) {
-            mIsRefreshing = true;
-            if (mListener != null) {
-                mListener.onRefresh();
-            }
+    protected void onRefresh() {
+        if (mListener != null) {
+            mListener.onRefresh();
         }
     }
 
@@ -100,7 +88,7 @@ public class PullToRefreshLayout extends RefreshLayout implements NestedScrollin
         final int action = MotionEventCompat.getActionMasked(ev);
         final int pointerIndex = MotionEventCompat.getActionIndex(ev);
 
-        if (!isEnabled() || mNestedScrollInProgress) {
+        if (!isEnabled() || mNestedScrollInProgress || triggerHelper.isRefreshing()) {
             return false;
         }
 
@@ -126,7 +114,7 @@ public class PullToRefreshLayout extends RefreshLayout implements NestedScrollin
 
                 if (!mIsBeingDragged && Math.abs(dy) > mTouchSlop) {
                     mLastTouchY = ev.getY(pointerIndex);
-                    mIsBeingDragged = dy > 0 ? !canTargetScrollDown() : offset > 0;
+                    mIsBeingDragged = dy > 0 ? !canTargetScrollDown() : mCurrentHeight > 0;
                 }
                 break;
             case MotionEventCompat.ACTION_POINTER_UP:
@@ -147,7 +135,7 @@ public class PullToRefreshLayout extends RefreshLayout implements NestedScrollin
         final int action = MotionEventCompat.getActionMasked(ev);
         int pointerIndex = MotionEventCompat.getActionIndex(ev);
 
-        if (!isEnabled() || mNestedScrollInProgress) {
+        if (!isEnabled() || mNestedScrollInProgress || triggerHelper.isRefreshing()) {
             return false;
         }
 
@@ -169,9 +157,11 @@ public class PullToRefreshLayout extends RefreshLayout implements NestedScrollin
 
                 if (mIsBeingDragged) {
                     final float y = ev.getY(pointerIndex);
-                    final int dy = (int) ((y - mLastTouchY) * DRAG_RATE);
+                    final float rate = y - mLastTouchY > 0 ? DRAG_RATE : 1;
+
+                    final int dy = (int) ((y - mLastTouchY) * rate);
                     mLastTouchY = y;
-                    ((RefreshTrigger) mRefreshView).onTouchMove(dy);
+                    triggerHelper.touchMove(dy);
                 }
                 break;
             case MotionEventCompat.ACTION_POINTER_UP:
@@ -186,12 +176,10 @@ public class PullToRefreshLayout extends RefreshLayout implements NestedScrollin
                 if (mIsBeingDragged) {
                     mIsBeingDragged = false;
                     final float y = ev.getY(pointerIndex);
-                    final float rate = y - mLastTouchY > 0 ? DRAG_RATE : 1;
                     final int dy = (int) ((y - mLastTouchY) * DRAG_RATE);
-
                     mLastTouchY = y;
-                    ((RefreshTrigger) mRefreshView).onTouchMove(dy);
-                    ((RefreshTrigger) mRefreshView).onRelease();
+                    triggerHelper.touchMove(dy);
+                    triggerHelper.release();
                 }
                 mActivePointerId = INVALID_POINTER;
                 return false;
@@ -226,9 +214,9 @@ public class PullToRefreshLayout extends RefreshLayout implements NestedScrollin
 
     public void onNestedPreScroll(View target, int dx, int dy, int[] consumed) {
         //向上
-        if (dy > 0 && offset > 0) {
-            consumed[1] = Math.min(offset, dy);
-            ((RefreshTrigger) mRefreshView).onTouchMove(-consumed[1]);
+        if (dy > 0 && mCurrentHeight > 0 && !triggerHelper.isRefreshing()) {
+            consumed[1] = Math.min(mCurrentHeight, dy);
+            triggerHelper.touchMove(-consumed[1]);
         }
 
         final int[] parentConsumed = new int[2];
@@ -242,9 +230,9 @@ public class PullToRefreshLayout extends RefreshLayout implements NestedScrollin
     public void onNestedScroll(View target, int dxConsumed, int dyConsumed,
                                int dxUnconsumed, int dyUnconsumed) {
         //向下
-        if (dyUnconsumed < 0 && !canTargetScrollDown()) {
-            ((RefreshTrigger) mRefreshView).onTouchMove((int) (-dyUnconsumed * DRAG_RATE));
-        }else {
+        if (dyUnconsumed < 0 && !canTargetScrollDown() && !triggerHelper.isRefreshing()) {
+            triggerHelper.touchMove((int) (-dyUnconsumed * DRAG_RATE));
+        } else {
             dispatchNestedScroll(dxConsumed, dyConsumed, dxUnconsumed, dyUnconsumed, null);
         }
     }
@@ -253,8 +241,8 @@ public class PullToRefreshLayout extends RefreshLayout implements NestedScrollin
         mNestedScrollingParentHelper.onStopNestedScroll(target);
         mNestedScrollInProgress = false;
 
-        if (offset > 0) {
-            ((RefreshTrigger) mRefreshView).onRelease();
+        if (mCurrentHeight > 0 && !triggerHelper.isRefreshing()) {
+            triggerHelper.release();
         }
 
         stopNestedScroll();
@@ -274,41 +262,41 @@ public class PullToRefreshLayout extends RefreshLayout implements NestedScrollin
 
 
     /***       NestedScrollingChild      ***/
-    public void setNestedScrollingEnabled(boolean enabled){
+    public void setNestedScrollingEnabled(boolean enabled) {
         mNestedScrollingChildHelper.setNestedScrollingEnabled(enabled);
     }
 
-    public boolean isNestedScrollingEnabled(){
+    public boolean isNestedScrollingEnabled() {
         return mNestedScrollingChildHelper.isNestedScrollingEnabled();
     }
 
-    public boolean startNestedScroll(int axes){
+    public boolean startNestedScroll(int axes) {
         return mNestedScrollingChildHelper.startNestedScroll(axes);
     }
 
-    public void stopNestedScroll(){
+    public void stopNestedScroll() {
         mNestedScrollingChildHelper.stopNestedScroll();
     }
 
-    public boolean hasNestedScrollingParent(){
+    public boolean hasNestedScrollingParent() {
         return mNestedScrollingChildHelper.hasNestedScrollingParent();
     }
 
     public boolean dispatchNestedScroll(int dxConsumed, int dyConsumed,
-                                        int dxUnconsumed, int dyUnconsumed, int[] offsetInWindow){
+                                        int dxUnconsumed, int dyUnconsumed, int[] offsetInWindow) {
         return mNestedScrollingChildHelper.dispatchNestedScroll(dxConsumed, dyConsumed, dxUnconsumed, dyUnconsumed, offsetInWindow);
     }
 
 
-    public boolean dispatchNestedPreScroll(int dx, int dy, int[] consumed, int[] offsetInWindow){
+    public boolean dispatchNestedPreScroll(int dx, int dy, int[] consumed, int[] offsetInWindow) {
         return mNestedScrollingChildHelper.dispatchNestedPreScroll(dx, dy, consumed, offsetInWindow);
     }
 
-    public boolean dispatchNestedFling(float velocityX, float velocityY, boolean consumed){
+    public boolean dispatchNestedFling(float velocityX, float velocityY, boolean consumed) {
         return mNestedScrollingChildHelper.dispatchNestedFling(velocityX, velocityY, consumed);
     }
 
-    public boolean dispatchNestedPreFling(float velocityX, float velocityY){
+    public boolean dispatchNestedPreFling(float velocityX, float velocityY) {
         return mNestedScrollingChildHelper.dispatchNestedPreFling(velocityX, velocityY);
     }
 

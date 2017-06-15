@@ -21,16 +21,24 @@ abstract class RefreshLayout extends ViewGroup{
     private static final int[] LAYOUT_ATTRS = new int[] {
             android.R.attr.enabled,
             R.attr.refresh_layout,
+            R.attr.pin
     };
 
     protected View mTarget;
 
     protected View mRefreshView;
 
+    protected RefreshTrigger refreshTrigger;
+
+    protected RefreshTriggerHelper triggerHelper;
+
     private int refreshRes;
 
-    protected int offset;
-    protected int mHeaderHeight;
+    /**mRefreshView当前的位置**/
+    protected int mCurrentHeight;
+
+    /**Target是否固定**/
+    protected boolean pin = false;
 
     public RefreshLayout(Context context) {
         super(context);
@@ -43,23 +51,24 @@ abstract class RefreshLayout extends ViewGroup{
 
         final TypedArray a = context.obtainStyledAttributes(attrs, LAYOUT_ATTRS);
         setEnabled(a.getBoolean(0, true));
-
         refreshRes = a.getResourceId(1, -1);
+        pin = a.getBoolean(2, false);
 
         a.recycle();
     }
 
     /**更新刷新控件头部高度*/
-    public abstract void onTransformHeaderHeight(int newHeight);
+    protected abstract void onTransformHeaderHeight(int newHeight);
 
     /**通知开始刷新数据*/
-    public abstract void onRefresh();
+    protected abstract void onRefresh();
 
     @Override
     protected void onFinishInflate() {
 
         ensureRefreshView();
         ensureTarget();
+        triggerHelper = new RefreshTriggerHelper(this, refreshTrigger);
 
         super.onFinishInflate();
     }
@@ -70,13 +79,21 @@ abstract class RefreshLayout extends ViewGroup{
         }
 
         if(!(mRefreshView instanceof RefreshTrigger)){
-            mRefreshView = new DefaultRefreshView(getContext());
 
-            LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-            mRefreshView.setLayoutParams(layoutParams);
+            if(!pin) {
+                mRefreshView = new DefaultRefreshView(getContext());
+
+                LayoutParams layoutParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+                mRefreshView.setLayoutParams(layoutParams);
+            }else {
+                mRefreshView = new DefaultPinRefreshView(getContext());
+
+                LayoutParams layoutParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+                mRefreshView.setLayoutParams(layoutParams);
+            }
         }
 
-        ((RefreshTrigger)mRefreshView).init(this);
+        refreshTrigger = (RefreshTrigger) mRefreshView;
 
         addView(mRefreshView);
     }
@@ -90,6 +107,10 @@ abstract class RefreshLayout extends ViewGroup{
                     break;
                 }
             }
+        }
+
+        if(mTarget == null){
+            throw new NullPointerException("Target cannot be null");
         }
     }
 
@@ -121,11 +142,19 @@ abstract class RefreshLayout extends ViewGroup{
         final int childWidth = width - getPaddingLeft() - getPaddingRight();
         final int childHeight = height - getPaddingTop() - getPaddingBottom();
 
-        mRefreshView.layout(childLeft, -(mHeaderHeight - childTop - offset), childLeft + childWidth, offset + childTop);
-        mTarget.layout(childLeft, offset + childTop, childLeft + childWidth, offset + childTop + mTarget.getMeasuredHeight());
+        final int refreshChildWidth = mRefreshView.getMeasuredWidth();
+        final int refreshChildHeight = mRefreshView.getMeasuredHeight();
+        final int refreshChildLeft = (width - refreshChildWidth)/2;
 
+        mRefreshView.layout(refreshChildLeft, childTop + mCurrentHeight - refreshChildHeight, refreshChildLeft + refreshChildWidth, mCurrentHeight + childTop);
+
+        if(pin){
+            mTarget.layout(childLeft, childTop, childLeft + childWidth, childTop + childHeight);
+        }else {
+            mTarget.layout(childLeft, mCurrentHeight + childTop, childLeft + childWidth, mCurrentHeight + childTop + mTarget.getMeasuredHeight());
+        }
         if(DEBUG){
-            Log.d(TAG, String.format("Refresh view top: %d, offset: %d, height: %d", -(mHeaderHeight - childTop - offset), offset, mHeaderHeight));
+            Log.d(TAG, String.format("Refresh view top: %d, currentHeight: %d, height: %d", -(refreshChildHeight - childTop - mCurrentHeight), mCurrentHeight, refreshChildHeight));
         }
 
     }
@@ -137,7 +166,9 @@ abstract class RefreshLayout extends ViewGroup{
         measureChild(mRefreshView, widthMeasureSpec, heightMeasureSpec);
         measureChild(mTarget, widthMeasureSpec, heightMeasureSpec);
 
-        mHeaderHeight = mRefreshView.getMeasuredHeight();
+        triggerHelper.setMaxScrollHeight(refreshTrigger.getMaxScrollHeight());
+        triggerHelper.setRefreshingHeight(refreshTrigger.getRefreshingHeight());
+        triggerHelper.setTriggerReleaseHeight(refreshTrigger.getTriggerReleaseHeight());
     }
 
     @Override
