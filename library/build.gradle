@@ -8,7 +8,7 @@ android {
         minSdkVersion 11
         targetSdkVersion 25
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -28,10 +28,10 @@ ext {
     bintrayPackage = 'PullToRefresh'
 
     publishGroupId = 'com.yzg.pulltorefresh'
-    artifact = 'pulltorefresh'
-    libraryVersion = '1.0'
+    artifact = 'library'
+    libraryVersion = '1.0.0'
 
-    desc = 'Android pull to refresh'
+    libraryDesc = 'Android pull to refresh'
 
     siteUrl = 'https://github.com/niane/PullToRefresh'
     gitUrl = 'https://github.com/niane/PullToRefresh.git'

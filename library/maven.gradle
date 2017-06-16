@@ -41,9 +41,7 @@ install {
                 artifactId artifact
 
                 // Add your description here
-                name artifact
-                version libraryVersion
-                description desc
+                name libraryDesc
                 url siteUrl
 
                 // Set your license
@@ -79,10 +77,19 @@ bintray {
     pkg {
         repo = bintrayRepo
         name = bintrayPackage
+        desc = libraryDesc
         websiteUrl = siteUrl
         vcsUrl = gitUrl
         licenses = allLicenses
         publish = true
         publicDownloadNumbers = true
+    }
+}
+
+javadoc {
+    options {
+        //如果你的项目里面有中文注释的话，必须将格式设置为UTF-8，不然会出现乱码
+        encoding "UTF-8"
+        charSet 'UTF-8'
     }
 }
