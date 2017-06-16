@@ -19,6 +19,31 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+}
+
+// 你只需要把这里的参数修改为自己的库名称即可
+ext {
+    bintrayRepo = 'maven'
+    bintrayPackage = 'PullToRefresh'
+
+    publishGroupId = 'com.yzg.pulltorefresh'
+    artifact = 'pulltorefresh'
+    libraryVersion = '1.0'
+
+    desc = 'Android pull to refresh'
+
+    siteUrl = 'https://github.com/niane/PullToRefresh'
+    gitUrl = 'https://github.com/niane/PullToRefresh.git'
+
+    developerId = 'niane'
+    developerName = 'yu zhi guan'
+    developerEmail = 'yzgniane@gmail.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+
+    allLicenses = ["Apache-2.0"]
 }
 
 dependencies {
@@ -29,3 +54,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.2.0'
     testCompile 'junit:junit:4.12'
 }
+
+apply from: './maven.gradle'
